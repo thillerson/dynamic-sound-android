@@ -3,9 +3,11 @@ package com.tackmobile.androidpiano.view;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 
-public class KeysView extends ViewGroup {
+public class KeysView extends ViewGroup implements OnClickListener {
 
 	private Key[] whiteKeys;
 	private Key[] blackKeys;
@@ -16,13 +18,27 @@ public class KeysView extends ViewGroup {
 		whiteKeys = new Key[7];
 		setBackgroundColor(context.getResources().getColor(android.R.color.black));
 		for (int i = 0; i < 7; i++) {
-			whiteKeys[i] = new Key(context, 66, false);
+			whiteKeys[i] = new Key(context, 60, false);
+			whiteKeys[i].setOnClickListener(this);
 			addView(whiteKeys[i]);
 		}
 		for (int i = 0; i < 5; i++) {
 			blackKeys[i] = new Key(context, 66, true);
+			blackKeys[i].setOnClickListener(this);
 			addView(blackKeys[i]);
 		}
+		whiteKeys[0].setMidiNote(60);
+		blackKeys[0].setMidiNote(61);
+		whiteKeys[1].setMidiNote(62);
+		blackKeys[1].setMidiNote(63);
+		whiteKeys[2].setMidiNote(64);
+		whiteKeys[3].setMidiNote(65);
+		blackKeys[2].setMidiNote(66);
+		whiteKeys[4].setMidiNote(67);
+		blackKeys[3].setMidiNote(68);
+		whiteKeys[5].setMidiNote(69);
+		blackKeys[4].setMidiNote(70);
+		whiteKeys[6].setMidiNote(71);
 	}
 	
 	@Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -37,7 +53,7 @@ public class KeysView extends ViewGroup {
 			currentKeyBottom -= whiteKeyHeight;
 		}
 		int t, b;
-		int r = getRight() - getWidth()/10;
+		int r = getRight() - (int)(getWidth()*0.3);
 		Key whiteKey = whiteKeys[0];
 		b = whiteKey.getBottom() - (int)(whiteKey.getHeight()/1.5);
 		whiteKey = whiteKeys[1];
@@ -75,6 +91,12 @@ public class KeysView extends ViewGroup {
 		blackKeys[4].setBottom(b);
 		blackKeys[4].setLeft(0);
 		blackKeys[4].setRight(r);
+	}
+
+	@Override
+	public void onClick(View v) {
+		Key key = (Key)v;
+		Log.d("Keys", String.format("Key pressed: %d", key.getMidiNote()));
 	}
 
 }
