@@ -1,30 +1,32 @@
 package com.tackmobile.androidpiano.view;
 
+import com.tackmobile.androidpiano.audio.PdInterface;
+
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.view.View.OnClickListener;
 
-public class KeysView extends ViewGroup implements OnClickListener {
+public class KeysView extends ViewGroup implements OnTouchListener {
 
 	private Key[] whiteKeys;
 	private Key[] blackKeys;
 
 	public KeysView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		setBackgroundColor(context.getResources().getColor(android.R.color.black));
 		blackKeys = new Key[5];
 		whiteKeys = new Key[7];
-		setBackgroundColor(context.getResources().getColor(android.R.color.black));
 		for (int i = 0; i < 7; i++) {
 			whiteKeys[i] = new Key(context, 60, false);
-			whiteKeys[i].setOnClickListener(this);
+			whiteKeys[i].setOnTouchListener(this);
 			addView(whiteKeys[i]);
 		}
 		for (int i = 0; i < 5; i++) {
 			blackKeys[i] = new Key(context, 66, true);
-			blackKeys[i].setOnClickListener(this);
+			blackKeys[i].setOnTouchListener(this);
 			addView(blackKeys[i]);
 		}
 		whiteKeys[0].setMidiNote(60);
@@ -41,6 +43,19 @@ public class KeysView extends ViewGroup implements OnClickListener {
 		whiteKeys[6].setMidiNote(71);
 	}
 	
+	@Override public boolean onTouch(View v, MotionEvent event) {
+		Key key = (Key)v;
+		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			int note = key.getMidiNote();
+			PdInterface.getInstance().gateOn(note);
+			return true;
+		} else if (event.getAction() == MotionEvent.ACTION_UP) {
+			PdInterface.getInstance().gateOff();
+			return true;
+		}
+		return false;
+	}
+
 	@Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 		int height  = getHeight();
 		int whiteKeyHeight = height/7;
@@ -93,10 +108,6 @@ public class KeysView extends ViewGroup implements OnClickListener {
 		blackKeys[4].setRight(r);
 	}
 
-	@Override
-	public void onClick(View v) {
-		Key key = (Key)v;
-		Log.d("Keys", String.format("Key pressed: %d", key.getMidiNote()));
-	}
+
 
 }

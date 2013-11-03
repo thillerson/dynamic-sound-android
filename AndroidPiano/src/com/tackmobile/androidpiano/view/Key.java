@@ -1,9 +1,9 @@
 package com.tackmobile.androidpiano.view;
 
 import android.content.Context;
-import android.widget.Button;
+import android.view.View;
 
-public class Key extends Button {
+public class Key extends View {
 
 	private int midiNote;
 	private boolean blackKey;
