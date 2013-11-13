@@ -1,13 +1,12 @@
 package com.tackmobile.spacerocks;
 
+import org.puredata.android.io.PdAudio;
+
+import com.tackmobile.spacerocks.audio.PdInterface;
+
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View.OnClickListener;
 import android.app.Activity;
-import android.graphics.Point;
-import android.graphics.Rect;
 
 public class MainActivity extends Activity {
 	
@@ -19,6 +18,22 @@ public class MainActivity extends Activity {
 	@Override protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		PdInterface.getInstance().initialize(this);
+	}
+
+	@Override protected void onStart() {
+		super.onStart();
+		PdAudio.startAudio(this);
+	}
+
+	@Override protected void onStop() {
+		PdAudio.stopAudio();
+		super.onStop();
+	}
+
+	@Override protected void onDestroy() {
+		PdInterface.getInstance().destroy();
+		super.onDestroy();
 	}
 
 	@Override protected void onResume() {
@@ -29,7 +44,7 @@ public class MainActivity extends Activity {
 	
 	Runnable frame = new Runnable() {
 		@Override public void run() {
-			gameBoard.updatePositions();
+			gameBoard.onFrame();
 			handler.postDelayed(frame, FRAME_RATE);
 		}
 	};

@@ -7,13 +7,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 
-public class Missile {
+public class Asteroid {
 	
-	public Missile(Context context) {
-		bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.player_missile);
+	public Asteroid(Context context) {
+		bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.asteroid);
 	}
-	
-	public Bitmap bitmap;
+
 	public Point point;
+	public Bitmap bitmap;
 
 }

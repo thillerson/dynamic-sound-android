@@ -3,6 +3,10 @@ package com.tackmobile.spacerocks;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import org.puredata.core.PdBase;
+
+import com.tackmobile.spacerocks.audio.PdInterface;
+import com.tackmobile.spacerocks.models.Asteroid;
 import com.tackmobile.spacerocks.models.Missile;
 
 import android.content.Context;
@@ -22,6 +26,7 @@ public class GameBoard extends View {
 
 	private static final int MISSILE_VELOCITY = 10;
 	private static final int SHIP_VELOCITY = 10;
+	private static final int ASTEROID_VELOCITY = 4;
 
 	private Paint paint;
 	private Point shipPoint;
@@ -30,6 +35,7 @@ public class GameBoard extends View {
 	Point tappedPoint;
 	Rect shipMovementRect, fireMissleRect;
 	ArrayList<Missile> missiles, missilesToRemove;
+	ArrayList<Asteroid> asteroids, asteroidsToRemove;
 
 	public GameBoard(Context context, AttributeSet attributeSet) {
 		super(context, attributeSet);
@@ -41,6 +47,8 @@ public class GameBoard extends View {
 		fireMissleRect = new Rect();
 		missiles = new ArrayList<Missile>(20);
 		missilesToRemove = new ArrayList<Missile>(1);
+		asteroids = new ArrayList<Asteroid>(5);
+		asteroidsToRemove = new ArrayList<Asteroid>(1);
 	}
 	
 	@Override public void layout(int l, int t, int r, int b) {
@@ -65,6 +73,10 @@ public class GameBoard extends View {
 		for (Missile m : missiles) {
 			canvas.drawBitmap(m.bitmap, m.point.x, m.point.y, null);
 		}
+		
+		for (Asteroid a : asteroids) {
+			canvas.drawBitmap(a.bitmap, a.point.x, a.point.y, null);
+		}
 	}
 	
 	@Override public boolean onTouchEvent(MotionEvent event) {
@@ -74,25 +86,52 @@ public class GameBoard extends View {
 			if (shipMovementRect.contains(x, y)) {
 				tappedPoint = new Point(x, y);
 			} else if (fireMissleRect.contains(x, y)) {
-				Missile newMissile = new Missile();
+				Missile newMissile = new Missile(getContext());
 				newMissile.point = new Point(shipPoint.x, shipPoint.y);
-				newMissile.bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.player_missile);
 				missiles.add(newMissile);
+				PdInterface.getInstance().fire();
 			}
 		}
 		return true;
 	}
 	
-	public void updatePositions() {
+	public void onFrame() {
+		updatePositions();
+		spawnAsteroids();
+		invalidate();
+	}
+
+	private void spawnAsteroids() {
+		if (Math.random() > 0.98) {
+			double percent = Math.random();
+			Asteroid a = new Asteroid(getContext());
+			a.point = new Point(getWidth(), (int)(percent * getHeight()));
+			asteroids.add(a);
+		}
+	}
+
+	private void updatePositions() {
 		if (tappedPoint != null) {
 			int distance = tappedPoint.y - shipPoint.y;
 			if (Math.abs(distance) < SHIP_VELOCITY) {
+				PdInterface.getInstance().thrusterOff();
 				tappedPoint = null;
 			} else {
+				PdInterface.getInstance().thrusterOn();
 				shipPoint.y += distance/SHIP_VELOCITY;
-				Log.d("Game", "The Math" + distance/SHIP_VELOCITY);
 			}
 		}
+		for (Asteroid a : asteroids) {
+			a.point.x -= ASTEROID_VELOCITY;
+			if(a.point.x + a.bitmap.getWidth() < 0) {
+				asteroidsToRemove.add(a);
+			}
+		}
+		for (Asteroid a : asteroidsToRemove) {
+			asteroids.remove(a);
+		}
+		asteroidsToRemove.clear();
+
 		for (Missile m : missiles) {
 			m.point.x += MISSILE_VELOCITY;
 			if(m.point.x + m.bitmap.getWidth() > getWidth()) {
@@ -103,7 +142,6 @@ public class GameBoard extends View {
 			missiles.remove(m);
 		}
 		missilesToRemove.clear();
-		invalidate();
 	}
 
 }
