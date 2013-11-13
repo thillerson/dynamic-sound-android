@@ -17,6 +17,8 @@ public class PdInterface {
   private static final int MIN_SAMPLE_RATE  = 44100;
   private static final String THRUSTER		= "thruster";
   private static final String MISSILE 		= "missile";
+  private static final String ASTEROID 		= "asteroid";
+  private static final String SHIP	 		= "ship";
 
   private static PdInterface ourInstance = new PdInterface();
   private Context context;
@@ -43,6 +45,14 @@ public class PdInterface {
   
   public void fire() {
 	  PdBase.sendList(MISSILE, 300, 400);
+  }
+  
+  public void shipHit() {
+	  PdBase.sendList(SHIP, 1000, 50);
+  }
+
+  public void asteroidHit() {
+	  PdBase.sendList(ASTEROID, 300, 30);
   }
 
   public void thrusterOn() {

@@ -1,9 +1,6 @@
 package com.tackmobile.spacerocks;
 
-import java.util.ArrayList;
-import java.util.Vector;
-
-import org.puredata.core.PdBase;
+import java.util.HashSet;
 
 import com.tackmobile.spacerocks.audio.PdInterface;
 import com.tackmobile.spacerocks.models.Asteroid;
@@ -18,24 +15,24 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 public class GameBoard extends View {
 
 	private static final int MISSILE_VELOCITY = 10;
-	private static final int SHIP_VELOCITY = 10;
+	private static final int SHIP_VELOCITY = 20;
 	private static final int ASTEROID_VELOCITY = 4;
 
 	private Paint paint;
 	private Point shipPoint;
 	private Bitmap shipBitmap;
 	private Rect shipBounds;
+	private Rect collisionRect;
 	Point tappedPoint;
 	Rect shipMovementRect, fireMissleRect;
-	ArrayList<Missile> missiles, missilesToRemove;
-	ArrayList<Asteroid> asteroids, asteroidsToRemove;
+	HashSet<Missile> missiles, missilesToRemove;
+	HashSet<Asteroid> asteroids, asteroidsToRemove;
 
 	public GameBoard(Context context, AttributeSet attributeSet) {
 		super(context, attributeSet);
@@ -43,12 +40,13 @@ public class GameBoard extends View {
 		shipPoint = new Point(50,50);
 		shipBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.player_spaceship);
 		shipBounds = new Rect(0,0, shipBitmap.getWidth(), shipBitmap.getHeight());
+		collisionRect = new Rect();
 		shipMovementRect = new Rect();
 		fireMissleRect = new Rect();
-		missiles = new ArrayList<Missile>(20);
-		missilesToRemove = new ArrayList<Missile>(1);
-		asteroids = new ArrayList<Asteroid>(5);
-		asteroidsToRemove = new ArrayList<Asteroid>(1);
+		missiles = new HashSet<Missile>(20);
+		missilesToRemove = new HashSet<Missile>(1);
+		asteroids = new HashSet<Asteroid>(5);
+		asteroidsToRemove = new HashSet<Asteroid>(1);
 	}
 	
 	@Override public void layout(int l, int t, int r, int b) {
@@ -98,7 +96,38 @@ public class GameBoard extends View {
 	public void onFrame() {
 		updatePositions();
 		spawnAsteroids();
+		detectCollisions();
 		invalidate();
+	}
+
+	private void detectCollisions() {
+		shipBounds.left = shipPoint.x;
+		shipBounds.top = shipPoint.y;
+		shipBounds.bottom = shipBounds.top + shipBitmap.getHeight();
+		shipBounds.right = shipBounds.left + shipBitmap.getWidth();
+		for (Asteroid a : asteroids) {
+			collisionRect.left = a.point.x;
+			collisionRect.top = a.point.y;
+			collisionRect.bottom = collisionRect.top + a.bitmap.getHeight();
+			collisionRect.right = collisionRect.left + a.bitmap.getWidth();
+			for (Missile m : missiles) {
+				if (collisionRect.contains(m.point.x, m.point.y)) {
+					missilesToRemove.add(m);
+					asteroidsToRemove.add(a);
+					PdInterface.getInstance().asteroidHit();
+				}
+			}
+			if (shipBounds.intersect(collisionRect)) {
+				asteroidsToRemove.add(a);
+				PdInterface.getInstance().shipHit();
+			}
+		}
+		for (Missile m : missilesToRemove) {
+			missiles.remove(m);
+		}
+		for (Asteroid a : asteroidsToRemove) {
+			asteroids.remove(a);
+		}
 	}
 
 	private void spawnAsteroids() {
