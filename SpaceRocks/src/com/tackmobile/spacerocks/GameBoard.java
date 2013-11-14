@@ -85,7 +85,7 @@ public class GameBoard extends View {
 				tappedPoint = new Point(x, y);
 			} else if (fireMissleRect.contains(x, y)) {
 				Missile newMissile = new Missile(getContext());
-				newMissile.point = new Point(shipPoint.x, shipPoint.y);
+				newMissile.point = new Point(shipPoint.x + shipBitmap.getWidth(), shipPoint.y + shipBitmap.getHeight());
 				missiles.add(newMissile);
 				PdInterface.getInstance().fire();
 			}
